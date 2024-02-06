@@ -1,14 +1,14 @@
 /**
  * crea un objetode tipo proceso que sea manipulable para las colas
  * @param {int} id  el id del proceso (Pid)
- * @param {int} at  en tiempo de entrada (Arraiving time)
+ * @param {int} tiempoLlegada  en tiempo de entrada (Arraiving time)
  * @param {int} ext  el tiempo de ejecucion (Execution Time)
  * @param {int} prl  el nivel de prioridad
  * @returns {object} RR process object
  */
-function ProcesoRR(id, at, ext,prl, color) {
+function ProcesoRR(id, tiempoLlegada, ext,prl, color) {
   this.id = id;
-  this.at = at;
+  this.tiempoLlegada = tiempoLlegada;
   this.ext = ext;
   this.prl = prl;
   this.totalduration = ext;
@@ -52,19 +52,33 @@ function draw() {//dibujar
  */
 function dibujarCeldas() {
   dibujarNombres();
+  for (let i = 0; i < listaDeProcesos.length; i++) {
+    // Reducir la duración restante de la ráfaga si el proceso está en ejecución
+    if (listaDeProcesos[i].tiempoLlegada <= contadorDeRafagas && listaDeProcesos[i].ext > 0) {
+      if (!listaDeProcesos[i].startExecution) {
+        listaDeProcesos[i].startExecution = contadorDeRafagas;
+      }
+      listaDeProcesos[i].ext--; // Reducir la duración restante de la ráfaga
+    }
+
+    // Si el proceso ha terminado de ejecutarse, calcular tiempos de espera y ráfaga
+    if (listaDeProcesos[i].ext <= 0 && listaDeProcesos[i].finishExecution === undefined) {
+      listaDeProcesos[i].finishExecution = contadorDeRafagas;
+      listaDeProcesos[i].waitingTime = listaDeProcesos[i].startExecution - listaDeProcesos[i].tiempoLlegada;
+      listaDeProcesos[i].burstTime = listaDeProcesos[i].finishExecution - listaDeProcesos[i].startExecution;
+    }
+  }
+
   listaDeProcesos.forEach((element) => {
-    if (element.at == contadorDeRafagas) {
+    if (element.tiempoLlegada == contadorDeRafagas) {
       colaDeProcesos.push(element);
       console.log("agregado a la RTQ");
     }
   });
 
   if (colaDeProcesos.length > 0) {
-    if (
-      colaDeProcesos[0].realtimeBuffer >
-        colaDeProcesos[0].totalduration - quantum &&
-      colaDeProcesos[0].totalduration - quantum >= 0
-    ) {
+    if (colaDeProcesos[0].realtimeBuffer > colaDeProcesos[0].totalduration - quantum &&
+                                         colaDeProcesos[0].totalduration - quantum >= 0) {
       colaDeProcesos[0].realtimeBuffer--;
     } else if (
       colaDeProcesos[0].realtimeBuffer == 0 ||
@@ -89,7 +103,7 @@ function dibujarCeldas() {
  * @returns {any}
  */
 function drawlines() {  
-  strokeWeight(5);
+  strokeWeight(4);
   for (index = 1; index <= listaDeProcesos.length; index++) {
     if (colaDeProcesos.length > 0) {
       try {
@@ -204,7 +218,7 @@ function dibujarNombres() {
 function getHTime() {
   var res = -1;
   listaDeProcesos.forEach((element) => {
-    var at = parseInt("" + element.at);
+    var tiempoLlegada = parseInt("" + element.tiempoLlegada);
     var ext = parseInt("" + element.ext);   
     res += ext;
   });
@@ -237,33 +251,41 @@ function addTable() {
   tableContainer.position(10, 320);
   tableContainer.size(600, 300);
   tableContainer.addClass("tables-container");
-  RRproclist = createDiv(`
-    <table class="processT">
-    <thead>
-        <tr>
-            <th>Proceso</th>
-            <th>Tiempo de llegada</th>
-            <th>Rafaga de CPU</th>
-            <th>Priority level</th>
-        </tr> 
-    </thead> 
-    <tbody id="processT">    
-    </tbody>
-    </table>`);
+      RRproclist = createDiv(`
+        <table class="processT">
+        <thead>
+            <tr>
+                <th>Proceso</th>
+                <th>Tiempo de llegada</th>
+                <th>Rafaga de CPU</th>
+                <th>Tiempo de Espera</th>
+                <th>Tiempo de Rafaga</th>
+                <th> </th>              
+            </tr> 
+        </thead> 
+        <tbody id="processT">    
+        </tbody>
+        </table>`);
   RRproclist.addClass("processes-table");
   tableContainer.child(RRproclist);
-  quewe = createDiv(`
-    <table class="processT"">
-    <thead>
-        <tr>
-            <th>Real time quewe</th>
-        </tr> 
-    </thead> 
-    <tbody id="processQ">    
-    </tbody> 
-    </table>`);
-  quewe.addClass("quewe-table");
-  tableContainer.child(quewe);
+    
+     quewe = createDiv(`
+      <table class="processT"">
+      <thead>
+          <tr>
+              <th>Cola de Espera</th>
+              
+          </tr> 
+      </thead> 
+      <tbody id="processQ">    
+      </tbody> 
+      </table>`);    
+  quewe.addClass("quewe-table"); 
+ tableContainer.child(quewe);
+
+ 
+
+
 }
 
 /**
@@ -286,7 +308,7 @@ function addcontainer() {
   inputET = createInput(null, "number");
   inputET.id("inputET");
   container.child(inputET);
-  LabelPr = createP("<p>Priority level</p>");
+  LabelPr = createP("<p> </p>");
   container.child(LabelPr);
   inputPr = createInput(null, "number");
   inputPr.id("inputPr");
@@ -295,9 +317,9 @@ function addcontainer() {
   btnSend.mousePressed(addProcess);
   btnSend.addClass("btn-send");
   container.child(btnSend);
-  labelQ = createP("<p>OS quantum</p>");
+  labelQ = createP("<p>quantum</p>");
   container.child(labelQ);
-  inputQ = createInput(10, "number");
+  inputQ = createInput(0, "number");
   inputQ.id("inputQ");
   container.child(inputQ);
   btnPlay = createButton("Ejecutar", "").size(200, 35);
@@ -395,16 +417,23 @@ function resetThis() {
 function actualizarTablasDeProcesos() {
   document.getElementById("processT").innerHTML = "";
   document.getElementById("processQ").innerHTML = "";
+   document.getElementById("processQ").innerHTML = "";
   for (i = 0; i < listaDeProcesos.length; i++) {
     row = document.getElementById("processT").insertRow(i);
     var cell1 = row.insertCell(0);
     var cell2 = row.insertCell(1);
     var cell3 = row.insertCell(2);
     var cell4 = row.insertCell(3);
+    var cell5 = row.insertCell(4);
+    var cell6 = row.insertCell(5);
+
     cell1.innerHTML = listaDeProcesos[i].id;
-    cell2.innerHTML = listaDeProcesos[i].at;
+    cell2.innerHTML = listaDeProcesos[i].tiempoLlegada;
     cell3.innerHTML = listaDeProcesos[i].ext;
     cell4.innerHTML = listaDeProcesos[i].prl;
+    cell5.innerHTML = listaDeProcesos[i].waitingTime || "-";
+    cell6.innerHTML = listaDeProcesos[i].burstTime || "-";
+
   }
   for (j = 0; j < colaDeProcesos.length; j++) {
     row = document.getElementById("processQ").insertRow(j);
