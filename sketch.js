@@ -6,7 +6,7 @@
  * @param {int} prl  el nivel de prioridad
  * @returns {object} RR process object
  */
-function RRprocess(id, at, ext,prl, color) {
+function ProcesoRR(id, at, ext,prl, color) {
   this.id = id;
   this.at = at;
   this.ext = ext;
@@ -16,30 +16,30 @@ function RRprocess(id, at, ext,prl, color) {
   this.color = color;
 }
 
-var processesCounter = 1;
-var prlis = [];
-var realTimeQuewe = [];
-var currentProcess;
-var burstcounter;
+var contadorDeProcesos = 1;
+var listaDeProcesos = [];
+var colaDeProcesos = [];
+var procesoActual;
+var contadorDeRafagas;
 var quantum;
 var running = false;
 
 function setup() {
   frameRate(12);
-  burstcounter = 0;
-  currentProcess = {};
+  contadorDeRafagas = 0;
+  procesoActual = {};
   createCanvas(900, 300);
   addcontainer();
   addTable();
   quantum = 0 | document.getElementById("inputQ").value;
 }
 
-function draw() {
-  updateTables();
+function draw() {//dibujar
+  actualizarTablasDeProcesos();
   if (running) {
-    drawstuff();
+    dibujarCeldas();
   } else {   
-    if(realTimeQuewe.length == 0){
+    if(colaDeProcesos.length == 0){
         background(225);
     }
   }
@@ -50,37 +50,37 @@ function draw() {
  * @date 2021-03-07
  * @returns {any}
  */
-function drawstuff() {
-  drawPNames();
-  prlis.forEach((element) => {
-    if (element.at == burstcounter) {
-      realTimeQuewe.push(element);
+function dibujarCeldas() {
+  dibujarNombres();
+  listaDeProcesos.forEach((element) => {
+    if (element.at == contadorDeRafagas) {
+      colaDeProcesos.push(element);
       console.log("agregado a la RTQ");
     }
   });
 
-  if (realTimeQuewe.length > 0) {
+  if (colaDeProcesos.length > 0) {
     if (
-      realTimeQuewe[0].realtimeBuffer >
-        realTimeQuewe[0].totalduration - quantum &&
-      realTimeQuewe[0].totalduration - quantum >= 0
+      colaDeProcesos[0].realtimeBuffer >
+        colaDeProcesos[0].totalduration - quantum &&
+      colaDeProcesos[0].totalduration - quantum >= 0
     ) {
-      realTimeQuewe[0].realtimeBuffer--;
+      colaDeProcesos[0].realtimeBuffer--;
     } else if (
-      realTimeQuewe[0].realtimeBuffer == 0 ||
-      realTimeQuewe[0].realtimeBuffer ==
-        realTimeQuewe[0].totalduration - quantum
+      colaDeProcesos[0].realtimeBuffer == 0 ||
+      colaDeProcesos[0].realtimeBuffer ==
+        colaDeProcesos[0].totalduration - quantum
     ) {      
       headToBack();
     } else if (
-      realTimeQuewe[0].realtimeBuffer > 0 &&
-      realTimeQuewe[0].totalduration - quantum < 0
+      colaDeProcesos[0].realtimeBuffer > 0 &&
+      colaDeProcesos[0].totalduration - quantum < 0
     ) {
-      realTimeQuewe[0].realtimeBuffer--;
+      colaDeProcesos[0].realtimeBuffer--;
     }
   }
   drawlines();
-  burstcounter++;
+  contadorDeRafagas++;
 }
 
 /**
@@ -89,12 +89,12 @@ function drawstuff() {
  * @returns {any}
  */
 function drawlines() {  
-  strokeWeight(4);
-  for (index = 1; index <= prlis.length; index++) {
-    if (realTimeQuewe.length > 0) {
+  strokeWeight(5);
+  for (index = 1; index <= listaDeProcesos.length; index++) {
+    if (colaDeProcesos.length > 0) {
       try {
-        if (realTimeQuewe[0].id == index) {
-          drawRedLine(index,realTimeQuewe[0].color);
+        if (colaDeProcesos[0].id == index) {
+          drawRedLine(index,colaDeProcesos[0].color);
         } else {
           drawWhiteLine(index);
         }
@@ -116,7 +116,7 @@ function drawlines() {
  */
 function drawRedLine(index,color) {
   htime = getHTime();
-  var x = 50 + map(burstcounter, 0, htime, 20, 300);
+  var x = 50 + map(contadorDeRafagas, 0, htime, 20, 300);
   var y = 29 * index;
   color2 = exToRGB(color);
   stroke(color2.r,color2.g, color2.b);
@@ -149,7 +149,7 @@ function exToRGB(exColor){
  */
 function drawWhiteLine(index) {
   htime = getHTime();
-  var x = 50 + map(burstcounter, 0, htime, 20, 300);
+  var x = 50 + map(contadorDeRafagas, 0, htime, 20, 300);
   var y = 29 * index;
   stroke(255, 255, 255);
   line(x, y, x, y + 16);
@@ -162,23 +162,23 @@ function drawWhiteLine(index) {
  */
 function headToBack() {
   // reiniciendo el buffer
-  if (realTimeQuewe.length > 0) {
-    realTimeQuewe[0].totalduration = realTimeQuewe[0].realtimeBuffer;
-    if (realTimeQuewe[0].totalduration > 0) {
-      var buffer = realTimeQuewe[0];
-      realTimeQuewe.splice(0, 1);
-      realTimeQuewe.push(buffer);
+  if (colaDeProcesos.length > 0) {
+    colaDeProcesos[0].totalduration = colaDeProcesos[0].realtimeBuffer;
+    if (colaDeProcesos[0].totalduration > 0) {
+      var buffer = colaDeProcesos[0];
+      colaDeProcesos.splice(0, 1);
+      colaDeProcesos.push(buffer);
     } else {
-      realTimeQuewe.splice(0, 1);
+      colaDeProcesos.splice(0, 1);
       //console.log("eliminado de la cabeza");
     }
   }
   // colocando el de mayor prioridad en la cola
-  higestP = Math.max.apply(null,realTimeQuewe.map(o => {return parseInt(o.prl);}));  
-  prbuffer = realTimeQuewe.filter(o => o.prl == higestP)[0];  
+  higestP = Math.max.apply(null,colaDeProcesos.map(o => {return parseInt(o.prl);}));  
+  prbuffer = colaDeProcesos.filter(o => o.prl == higestP)[0];  
   if(prbuffer){
-    realTimeQuewe.splice(realTimeQuewe.indexOf(prbuffer), 1);
-    realTimeQuewe.unshift(prbuffer);
+    colaDeProcesos.splice(colaDeProcesos.indexOf(prbuffer), 1);
+    colaDeProcesos.unshift(prbuffer);
     if(prbuffer.prl>1){prbuffer.prl--;}
   }
   
@@ -189,10 +189,10 @@ function headToBack() {
  * @date 2021-03-07
  * @returns {any}
  */
-function drawPNames() {
-  prlis.forEach((process) => {
+function dibujarNombres() {
+  listaDeProcesos.forEach((process) => {
     textSize(32);
-    text("P" + process.id, 9, 15 + 29 * (prlis.indexOf(process) + 1));
+    text("P" + process.id, 9, 15 + 29 * (listaDeProcesos.indexOf(process) + 1));
   });
 }
 
@@ -203,13 +203,13 @@ function drawPNames() {
  */
 function getHTime() {
   var res = -1;
-  prlis.forEach((element) => {
+  listaDeProcesos.forEach((element) => {
     var at = parseInt("" + element.at);
     var ext = parseInt("" + element.ext);   
     res += ext;
   });
-  res = res/prlis.length;// tiempo medio de ejecucion  
-  return res+(2.4*prlis.length)*(map(quantum, 1, 1000, 5, 1));
+  res = res/listaDeProcesos.length;// tiempo medio de ejecucion  
+  return res+(2.4*listaDeProcesos.length)*(map(quantum, 1, 1000, 5, 1));
 }
 
 /**
@@ -234,16 +234,16 @@ function drawPause() {
  */
 function addTable() {
   tableContainer = createDiv();
-  tableContainer.position(200, 320);
+  tableContainer.position(10, 320);
   tableContainer.size(600, 300);
   tableContainer.addClass("tables-container");
   RRproclist = createDiv(`
     <table class="processT">
     <thead>
         <tr>
-            <th>Pid</th>
-            <th>Arraiving time</th>
-            <th>Execution time</th>
+            <th>Proceso</th>
+            <th>Tiempo de llegada</th>
+            <th>Rafaga de CPU</th>
             <th>Priority level</th>
         </tr> 
     </thead> 
@@ -274,14 +274,14 @@ function addTable() {
 function addcontainer() {
   container = createDiv();
   container.position(920, 0);
-  title = createP("<h1>Round Robin Scheduling</h1>");
+  title = createP("<h1>ALGORITMOS DE PLANIFICACIÓN</h1>");
   container.child(title);
-  labelAT = createP("<p>Arraiving Time (aT)</p>");
+  labelAT = createP("<p>Tiempo de llegada</p>");
   container.child(labelAT);
   inputAT = createInput(null, "number");
   inputAT.id("inputAT");
   container.child(inputAT);
-  LabelET = createP("<p>Execution time (xT)</p>");
+  LabelET = createP("<p>Rafaga de CPU</p>");
   container.child(LabelET);
   inputET = createInput(null, "number");
   inputET.id("inputET");
@@ -291,7 +291,7 @@ function addcontainer() {
   inputPr = createInput(null, "number");
   inputPr.id("inputPr");
   container.child(inputPr);
-  btnSend = createButton("Add Process", "").size(200, 60);
+  btnSend = createButton("Insertar Proceso", "").size(200, 60);
   btnSend.mousePressed(addProcess);
   btnSend.addClass("btn-send");
   container.child(btnSend);
@@ -300,7 +300,7 @@ function addcontainer() {
   inputQ = createInput(10, "number");
   inputQ.id("inputQ");
   container.child(inputQ);
-  btnPlay = createButton("start", "").size(200, 35);
+  btnPlay = createButton("Ejecutar", "").size(200, 35);
   btnPlay.mousePressed(playRR);
   btnPlay.addClass("btn-send");
   container.child(btnPlay);
@@ -352,15 +352,21 @@ function addProcess() {
   inputET = document.getElementById("inputET").value;
   inputPr = document.getElementById("inputPr").value;
   if (inputAT && inputET) {
-    newprocess = new RRprocess(
-      processesCounter,
+    newprocess = new ProcesoRR(
+      contadorDeProcesos,
       inputAT,
       inputET,
       inputPr,
       getRandomColor()
     );
-    processesCounter++;
-    prlis.push(newprocess);
+    contadorDeProcesos++;
+    listaDeProcesos.push(newprocess);
+
+   // Vaciar los campos de entrada
+   document.getElementById("inputAT").value = "";
+   document.getElementById("inputET").value = "";
+    document.getElementById("inputPr").value = "";
+
   } else {
     alert("Los campos no deben estar vacios");
   }
@@ -372,11 +378,11 @@ function addProcess() {
  * @returns {any}
  */
 function resetThis() {
-  processesCounter = 1;
-  prlis = [];
-  realTimeQuewe = [];
-  currentProcess = {};
-  burstcounter = 0;
+  contadorDeProcesos = 1;
+  listaDeProcesos = [];
+  colaDeProcesos = [];
+  procesoActual = {};
+  contadorDeRafagas = 0;
   quantum = 0 | document.getElementById("inputET").value;
   running = false;
 }
@@ -386,25 +392,25 @@ function resetThis() {
  * @date 2021-03-07
  * @returns {any}
  */
-function updateTables() {
+function actualizarTablasDeProcesos() {
   document.getElementById("processT").innerHTML = "";
   document.getElementById("processQ").innerHTML = "";
-  for (i = 0; i < prlis.length; i++) {
+  for (i = 0; i < listaDeProcesos.length; i++) {
     row = document.getElementById("processT").insertRow(i);
     var cell1 = row.insertCell(0);
     var cell2 = row.insertCell(1);
     var cell3 = row.insertCell(2);
     var cell4 = row.insertCell(3);
-    cell1.innerHTML = prlis[i].id;
-    cell2.innerHTML = prlis[i].at;
-    cell3.innerHTML = prlis[i].ext;
-    cell4.innerHTML = prlis[i].prl;
+    cell1.innerHTML = listaDeProcesos[i].id;
+    cell2.innerHTML = listaDeProcesos[i].at;
+    cell3.innerHTML = listaDeProcesos[i].ext;
+    cell4.innerHTML = listaDeProcesos[i].prl;
   }
-  for (j = 0; j < realTimeQuewe.length; j++) {
+  for (j = 0; j < colaDeProcesos.length; j++) {
     row = document.getElementById("processQ").insertRow(j);
     var cellP = row.insertCell(0);
     try {
-      cellP.innerHTML = "P" + realTimeQuewe[j].id+ '-' + realTimeQuewe[j].realtimeBuffer + '-'+realTimeQuewe[j].prl;
+      cellP.innerHTML = "P" + colaDeProcesos[j].id+ '-' + colaDeProcesos[j].realtimeBuffer + '-'+colaDeProcesos[j].prl;
     } catch (error) {      
     }
     
