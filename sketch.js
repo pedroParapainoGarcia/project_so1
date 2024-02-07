@@ -47,7 +47,7 @@ function draw() {//dibujar
 
 /**
  * dibuja lo eferente al canvas
- * @date 2021-03-07
+ * @date 
  * @returns {any}
  */
 function dibujarCeldas() {
@@ -99,7 +99,7 @@ function dibujarCeldas() {
 
 /**
  * dibuja las lineas de tiempo
- * @date 2021-03-07
+ * @date 
  * @returns {any}
  */
 function drawlines() {  
@@ -123,7 +123,7 @@ function drawlines() {
 
 /**
  * dibuja unalinea eferente al proceso con su color
- * @date 2021-03-07
+ * @date 
  * @param {any} index
  * @param {any} color
  * @returns {any}
@@ -140,7 +140,7 @@ function drawRedLine(index,color) {
 
 /**
  * convierte exadecimal a rgb
- * @date 2021-03-07
+ * @date 
  * @param {any} exColor
  * @returns {any}
  */
@@ -157,7 +157,7 @@ function exToRGB(exColor){
 /**
  * dibuja las linear referentes a momentos en los que el proceso no
  * se esta ejecutando
- * @date 2021-03-07
+ * @date 
  * @param {any} index
  * @returns {any}
  */
@@ -171,7 +171,7 @@ function drawWhiteLine(index) {
 
 /**
  * muestra la cola en tiempo real de los procesos
- * @date 2021-03-07
+ * @date 
  * @returns {any}
  */
 function headToBack() {
@@ -200,7 +200,7 @@ function headToBack() {
 
 /**
  *dibuja los nobres P1,P2... en el canvas
- * @date 2021-03-07
+ * @date 
  * @returns {any}
  */
 function dibujarNombres() {
@@ -212,7 +212,7 @@ function dibujarNombres() {
 
 /**
  * obtiene el tiempo maximo de ejecucion
- * @date 2021-03-07
+ * @date 
  * @returns {any}
  */
 function getHTime() {
@@ -228,7 +228,7 @@ function getHTime() {
 
 /**
  * metodo que se ejecuta cuando el proceso se pausa
- * @date 2021-03-07
+ * @date 
  * @returns {any}
  */
 function drawPause() {
@@ -243,7 +243,7 @@ function drawPause() {
 
 /**
  *metodo que coloca la tabla de procesos
- * @date 2021-03-07
+ * @date 
  * @returns {any}
  */
 function addTable() {
@@ -290,7 +290,7 @@ function addTable() {
 
 /**
  * metodo que agrega el contenedor conde se coloca la mayoria de items
- * @date 2021-03-07
+ * @date 
  * @returns {any}
  */
 function addcontainer() {
@@ -347,7 +347,7 @@ function addcontainer() {
 
 /**
  * metodo para arancar
- * @date 2021-03-07
+ * @date 
  * @returns {any}
  */
 function playRR() {
@@ -357,7 +357,7 @@ function playRR() {
 
 /**
  * metodo para pausar
- * @date 2021-03-07
+ * @date 
  * @returns {any}
  */
 function pauseRR() {
@@ -366,7 +366,7 @@ function pauseRR() {
 
 /**
  * metodo para agregar un proceso
- * @date 2021-03-07
+ * @date 
  * @returns {any}
  */
 function addProcess() {
@@ -396,7 +396,7 @@ function addProcess() {
 
 /**
  * metodo para resetear el sistema
- * @date 2021-03-07
+ * @date 
  * @returns {any}
  */
 function resetThis() {
@@ -411,13 +411,13 @@ function resetThis() {
 
 /**
  * metodo para actualizar las tablas
- * @date 2021-03-07
+ * @date 
  * @returns {any}
  */
 function actualizarTablasDeProcesos() {
   document.getElementById("processT").innerHTML = "";
   document.getElementById("processQ").innerHTML = "";
-   document.getElementById("processQ").innerHTML = "";
+  
   for (i = 0; i < listaDeProcesos.length; i++) {
     row = document.getElementById("processT").insertRow(i);
     var cell1 = row.insertCell(0);
